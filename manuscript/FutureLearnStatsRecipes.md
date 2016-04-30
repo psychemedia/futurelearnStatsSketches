@@ -1,5 +1,5 @@
 
-# FutureLearn Stats Recipes
+# FutureLearn Stats Recipes - Jupyter Notebooks
 
 *Tony Hirst, The Open University / @psychemedia / OUseful.info blog*
 
@@ -28,12 +28,14 @@ As well as interactively executable code cells, Jupyter notebooks also support a
 
 Once you have run the notebook, you can save an HTML version of it from the `File` menu.
 
-# Initialisation
+## Initialisation
 
 We need to load in some libraries and utility functions that we will use to analyse and manipulate the data.
 
 
 ```python
+%matplotlib inline
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,10 +46,20 @@ from ipywidgets import widgets, interact
 from datetime import date, timedelta
 
 def offsetDays(date_str,offset):
-    ''' Return a date a specified number of days before a particular date'''
+    ''' Return a date a specified number of days before (offset<0) or after (offset>0) a particular date'''
     if offset<0:
         return (pd.to_datetime(date_str)-timedelta(days=abs(offset))).date().strftime('%Y-%m-%d')
     return (pd.to_datetime(date_str)+timedelta(days=offset)).date().strftime('%Y-%m-%d')
+```
+
+If you get any warnings about packages not being found, you will need to install them. The following code cell gives examples of how to install the `seaborn` package. Which package manager you use depends on how your system is set up. If you use the wrong one, you may get an error message but it shouldn't break anything. Uncomment the appropriate line (remove the #), run the code cell, and and then rerurn the code cell above to see if you can now import the package.
+
+
+```python
+##The ! says: run this command on your computer command line
+#!pip install seaborn
+#!pip3 install seaborn
+#!conda install seaborn
 ```
 
 ----
@@ -386,8 +398,8 @@ def studyWeekDatePlot(ax):
     
 def enrolInWindow(en,start=None,end=None,edge=False,notableDates=True):
     ''' Normally the start and end dates apply to enrolment date.
-        Any full participation or unenrolment dates are relative to those individuals
-        so may extend outside the start/end date range.
+        Any full participation or unenrolment dates are relative to those individuals so may extend
+        outside the start/end date range.
         To hard limit the chart start/end dates, apply the edge=True setting. '''
     enw=en.set_index('enrolled_at')
     enw.sort_index(inplace=True)
@@ -398,17 +410,22 @@ def enrolInWindow(en,start=None,end=None,edge=False,notableDates=True):
     unenw=enw[enw['unenrolled_at'].notnull()].copy()
     unenw=unenw.set_index('unenrolled_at')
     unenw.sort_index(inplace=True)
-    if edge: unenw=date_limiter(unenw, start, end)
-    unenw['unenaccnum']=range(len(unenw))
-    ax=unenw['unenaccnum'].plot(ax=ax,legend=True,label='Unenrolments',color='r')
+    if edge:
+        unenw=date_limiter(unenw, start, end)
+        if len(unenw)>0:
+            unenw['unenaccnum']=range(len(unenw))
+            ax=unenw['unenaccnum'].plot(ax=ax,legend=True,label='Unenrolments',color='r')
+   
     fullp=enw[enw['fully_participated_at'].notnull()].copy()
     fullp=fullp.set_index('fully_participated_at')
     fullp.sort_index(inplace=True)
-    if edge: fullp=date_limiter(fullp, start, end)
-    fullp['fullpaccnum']=range(len(fullp))
-    ax=fullp['fullpaccnum'].plot(ax=ax,legend=True,label='Full participation',color='g')
+    if edge:
+        fullp=date_limiter(fullp, start, end)
+        if len(fullp)>0:
+            fullp['fullpaccnum']=range(len(fullp))
+            ax=fullp['fullpaccnum'].plot(ax=ax,legend=True,label='Full participation',color='g')
     ax.set_xlabel("Date")
-    
+   
     if notableDates:
         notableDatePlot(ax)
 ```
@@ -922,6 +939,14 @@ We can also spy on the educators to see how their comments grow as a group.
 
 ```python
 educator_comments=comments[comments['author_id'].isin(usersByRole('educator'))][:]
+if not len(educator_comments.index):
+    print('No comments by educators in that period? Further educator_comment cells may throw an error.')
+```
+
+(It would perhaps make sense to just support a generic role/comment explorer here, using a widget to select role.)
+
+
+```python
 educator_comments['accnum']=range(len(educator_comments))
 educator_comments.plot(y='accnum',legend=False,
                        title='Accession plot of comments by educators')
