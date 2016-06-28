@@ -1,0 +1,1 @@
+Manuscript / md version of notebooks, for rendering as PDF eg via LeanPub: [Course Analytics - Wrangling FutureLearn Data With Python and R](https://leanpub.com/courseanalytics-wranglingfuturelearndatawithpythonandr/)
